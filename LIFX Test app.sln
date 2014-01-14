@@ -1,0 +1,26 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 10.00
+# Visual Studio 2008
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LIFX Test app", "LIFX Test app\LIFX Test app.csproj", "{73949490-0F52-4F14-93D1-58C9B8C21BF1}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LifxLib", "LifxLib\LifxLib.csproj", "{B867E34E-3036-44D3-B2EB-77995957D20C}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{73949490-0F52-4F14-93D1-58C9B8C21BF1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{73949490-0F52-4F14-93D1-58C9B8C21BF1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{73949490-0F52-4F14-93D1-58C9B8C21BF1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{73949490-0F52-4F14-93D1-58C9B8C21BF1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B867E34E-3036-44D3-B2EB-77995957D20C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B867E34E-3036-44D3-B2EB-77995957D20C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B867E34E-3036-44D3-B2EB-77995957D20C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B867E34E-3036-44D3-B2EB-77995957D20C}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
