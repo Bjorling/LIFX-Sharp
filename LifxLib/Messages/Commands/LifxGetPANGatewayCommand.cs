@@ -10,9 +10,10 @@ namespace LifxLib.Messages
         private const UInt16 PACKET_TYPE = 0x02;
         
         public LifxGetPANGatewayCommand()
-            : base(PACKET_TYPE, new LifxPANGatewayState())
+            : base(PACKET_TYPE, new LifxPANGatewayStateMessage())
         {
             base.IsBroadcastCommand = true;
+            base.IsDiscoveryCommand = true;
         }
 
     }

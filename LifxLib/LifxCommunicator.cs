@@ -31,8 +31,11 @@ namespace LifxLib
         }
 
         private Queue<IncomingMessage> mIncomingQueue = new Queue<IncomingMessage>(10);
+
+        private List<LifxPanController> mFoundPanHandlers = new List<LifxPanController>();
+
         private const Int32 LIFX_PORT = 56700;
-        private int mTimeoutMilliseconds = 700;
+        private int mTimeoutMilliseconds = 1000;
         private UdpClient mSendCommandClient;
         private UdpClient mListnerClient;
         private bool mIsInitialized = false;
@@ -96,39 +99,54 @@ namespace LifxLib
         }
 
         /// <summary>
-        /// Discovers the bulbs currently available. NOTE: WILL ONLY FIND ONE BULB IN THIS IMPLEMENTATION.
+        /// Discovers the PanControllers (including their bulbs)
         /// </summary>
         /// <returns>List of bulbs</returns>
-        public List<LifxBulb> DiscoverBulbs()
+        public List<LifxPanController> Discover()
         {
             LifxGetPANGatewayCommand getPANCommand = new LifxGetPANGatewayCommand();
 
-           LifxBulb bulb = LifxBulb.UninitializedBulb;
-
+           mFoundPanHandlers.Clear();
+           mTimeoutMilliseconds = 1500;
+           int savedTimeout = mTimeoutMilliseconds;
 
            try
            {
-               SendCommand(getPANCommand, bulb);
 
-               List<LifxBulb> foundBulbs = new List<LifxBulb>();
-               foundBulbs.Add(bulb);
-               return foundBulbs;
-           }
-           catch (TimeoutException)
-           {
-               //Could not find any bulb, just return empty array...
-               return new List<LifxBulb>();
+               SendCommand(getPANCommand, LifxPanController.UninitializedPanController);
 
+               foreach (LifxPanController controller in mFoundPanHandlers)
+               {
+                   LifxGetLightStatusCommand getBulbs = new LifxGetLightStatusCommand();
+                   getBulbs.IsDiscoveryCommand = true;
+
+                   SendCommand(getBulbs, controller);
+               
+               }
+
+               return mFoundPanHandlers;
            }
            catch (Exception e)
            {
                //In case of any other exception, re-throw
                throw e;
            }
+           finally 
+           {
+               mTimeoutMilliseconds = savedTimeout;
+           }
             
             
         }
+        public LifxReceivedMessage SendCommand(LifxCommand command, LifxBulb bulb)
+        {
+            return SendCommand(command, bulb.MacAddress, bulb.PanHandler, bulb.IpEndpoint);
+        }
 
+        public LifxReceivedMessage SendCommand(LifxCommand command, LifxPanController panController)
+        {
+            return SendCommand(command, "", panController.MacAddress, panController.IpEndpoint);
+        }
 
         /// <summary>
         /// Sends command to a bulb
@@ -136,18 +154,18 @@ namespace LifxLib
         /// <param name="command"></param>
         /// <param name="bulb">The bulb to send the command to.</param>
         /// <returns>Returns the response message. If the command does not trigger a response it will reurn null. </returns>
-        public LifxReceivedMessage SendCommand(LifxCommand command, LifxBulb bulb)
+        public LifxReceivedMessage SendCommand(LifxCommand command, string macAddress, string panController, IPEndPoint endPoint)
         {
             if (!IsInitialized)
-                throw new InvalidOperationException("The communicator needs to be initialized before sening a command.");
+                throw new InvalidOperationException("The communicator needs to be initialized before sending a command.");
 
 
-            UdpClient client = GetConnectedClient(command, bulb);
+            UdpClient client = GetConnectedClient(command, endPoint);
 
 
             LifxDataPacket packet = new LifxDataPacket(command);
-            packet.TargetMac = LifxHelper.StringToByteArray(bulb.MacAddress);
-            packet.PanControllerMac = LifxHelper.StringToByteArray(bulb.PanHandler);
+            packet.TargetMac = LifxHelper.StringToByteArray(macAddress);
+            packet.PanControllerMac = LifxHelper.StringToByteArray(panController);
 
             client.Send(packet.PacketData, packet.PacketData.Length);
 
@@ -161,29 +179,50 @@ namespace LifxLib
                 if (mIncomingQueue.Count != 0)
                 {
                     IncomingMessage mess = mIncomingQueue.Dequeue();
-                    LifxDataPacket recievedPacket = mess.Data;
+                    LifxDataPacket receivedPacket = mess.Data;
 
 
-                    if (recievedPacket.PacketType == command.ReturnMessage.PacketType)
+                    if (receivedPacket.PacketType == LifxPANGatewayStateMessage.PACKET_TYPE) 
+                    { 
+                        //Panhandler identified
+                        LifxPANGatewayStateMessage panGateway = new LifxPANGatewayStateMessage();
+                        panGateway.ReceivedData = receivedPacket;
+
+                        AddDiscoveredPanHandler(new LifxPanController(
+                               LifxHelper.ByteArrayToString(receivedPacket.TargetMac),
+                               mess.BulbAddress));
+
+                    }
+                    else if (receivedPacket.PacketType == LifxLightStatusMessage.PACKET_TYPE && command.IsDiscoveryCommand)
                     {
-                        bulb.IpEndpoint = mess.BulbAddress;
-                        bulb.MacAddress = LifxHelper.ByteArrayToString(recievedPacket.TargetMac);
-                        bulb.PanHandler = LifxHelper.ByteArrayToString(recievedPacket.PanControllerMac);
+                        //Panhandler identified
+                        LifxLightStatusMessage panGateway = new LifxLightStatusMessage();
+                        panGateway.ReceivedData = receivedPacket;
 
-                        command.ReturnMessage.ReceivedData = recievedPacket;
+                        AddDiscoveredBulb(
+                            LifxHelper.ByteArrayToString(receivedPacket.TargetMac),   
+                            LifxHelper.ByteArrayToString(receivedPacket.PanControllerMac));
+                    }
+                    else if (receivedPacket.PacketType == command.ReturnMessage.PacketType)
+                    {
+                       
+                        command.ReturnMessage.ReceivedData = receivedPacket;
                         mIncomingQueue.Clear();
                         return command.ReturnMessage;
                     }
                 }
-                Thread.Sleep(10);
+                Thread.Sleep(30);
             }
+
+            if (command.IsDiscoveryCommand)
+                return null;
 
             if (command.RetryCount > 0)
             {
                 command.RetryCount -= 1;
 
                 //Recurssion
-                return SendCommand(command, bulb);
+                return SendCommand(command, macAddress, panController, endPoint);
             }
             else
                 throw new TimeoutException("Did not get a reply from bulb in a timely fashion");
@@ -191,12 +230,43 @@ namespace LifxLib
         }
 
 
- 
-        private UdpClient GetConnectedClient(LifxCommand command, LifxBulb bulb)
+        private void AddDiscoveredPanHandler(LifxPanController foundPanHandler)
+        {
+            foreach (LifxPanController handler in mFoundPanHandlers)
+            {
+                if (handler.MacAddress == foundPanHandler.MacAddress)
+                    return;//already added
+            }
+
+            mFoundPanHandlers.Add(foundPanHandler);
+        }
+
+        private void AddDiscoveredBulb(string macAddress, string panController)
+        {
+            foreach (LifxPanController controller in mFoundPanHandlers)
+            {
+                if (controller.MacAddress == panController)
+                {
+                    foreach (LifxBulb bulb in controller.Bulbs)
+                    {
+                        if (bulb.MacAddress == macAddress)
+                            return;
+                    }
+
+                    controller.Bulbs.Add(new LifxBulb(controller, macAddress));
+                    return;
+                }
+            }
+
+            throw new InvalidOperationException("Should not end up here basically.");
+        }
+
+
+        private UdpClient GetConnectedClient(LifxCommand command, IPEndPoint endPoint)
         {
             if (mSendCommandClient == null)
             {
-                return CreateClient(command, bulb);
+                return CreateClient(command, endPoint);
             }
             else
             { 
@@ -209,7 +279,7 @@ namespace LifxLib
                     else
                     {
                         mSendCommandClient.Close();
-                        return CreateClient(command,bulb);
+                        return CreateClient(command, endPoint);
                     }
                 }
                 else
@@ -217,7 +287,7 @@ namespace LifxLib
                     if (mSendCommandClient.Client.EnableBroadcast)
                     {
                         mSendCommandClient.Close();
-                        return CreateClient(command, bulb); 
+                        return CreateClient(command, endPoint); 
                         
                     }
                     else
@@ -227,7 +297,7 @@ namespace LifxLib
                 }
             }
         }
-        private UdpClient CreateClient(LifxCommand command, LifxBulb bulb)
+        private UdpClient CreateClient(LifxCommand command, IPEndPoint endPoint)
         {
             if (command.IsBroadcastCommand)
             {
@@ -247,7 +317,7 @@ namespace LifxLib
                 mSendCommandClient.Client.SetSocketOption(
                 SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
 
-                mSendCommandClient.Connect(new IPEndPoint(bulb.IpEndpoint.Address, LIFX_PORT));
+                mSendCommandClient.Connect(endPoint);
                 return mSendCommandClient;
 
             }

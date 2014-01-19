@@ -46,6 +46,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="LifxPanController.cs" />
     <Compile Include="LifxBulb.cs" />
     <Compile Include="LifxColor.cs" />
     <Compile Include="Messages\Commands\LifxCommand.cs" />
@@ -67,7 +68,7 @@
     <Compile Include="LifxLightStatus.cs" />
     <Compile Include="Messages\ResponseMessages\LifxLabelMessage.cs" />
     <Compile Include="Messages\ResponseMessages\LifxLightStatusMessage.cs" />
-    <Compile Include="Messages\ResponseMessages\LifxPANGatewayState.cs" />
+    <Compile Include="Messages\ResponseMessages\LifxPANGatewayStateMessage.cs" />
     <Compile Include="Messages\ResponseMessages\LifxPANServiceType.cs" />
     <Compile Include="Messages\ResponseMessages\LifxPowerStateMessage.cs" />
     <Compile Include="Messages\ResponseMessages\LifxReceivedMessage.cs" />

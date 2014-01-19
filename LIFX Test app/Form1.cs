@@ -28,9 +28,9 @@ namespace Lifx_Test_app
 
         private void button1_Click(object sender, EventArgs e)
         {
-            List<LifxBulb> bulbs = LifxCommunicator.Instance.DiscoverBulbs();
+            List<LifxPanController> panController = LifxCommunicator.Instance.Discover();
 
-            if (bulbs.Count == 0)
+            if (panController.Count == 0)
             {
                 MessageBox.Show("Could not find any bulbs");
                 mPowerGB.Enabled = false;
@@ -39,7 +39,7 @@ namespace Lifx_Test_app
                 return;            
             }
 
-            mBulb = bulbs[0];
+            mBulb = panController[0].Bulbs[0];
 
             mBulbIPTB.Text = mBulb.IpEndpoint.Address.ToString(); 
             mTargetMACTB.Text = mBulb.MacAddress;
@@ -130,7 +130,7 @@ namespace Lifx_Test_app
         private void button9_Click(object sender, EventArgs e)
         {
             colorDialog1.ShowDialog();
-
+            colorDialog1.Color = mBulbColorP.BackColor;
             mBulbColorP.BackColor = colorDialog1.Color;
 
              

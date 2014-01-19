@@ -10,15 +10,14 @@ namespace LifxLib
 {
     public class LifxBulb
     {
-        private string mPanHandler = "";
-        private string mMacAddress = "";        
-        private IPEndPoint mIpAddress;
+        private string mMacAddress = "";
+        private LifxPanController mPanController;
 
-        public LifxBulb(string panHandler, string macAddress, IPEndPoint ipAddress)
+        public LifxBulb(LifxPanController panController, string macAddress)
         {
-            panHandler = mPanHandler;
+            mPanController = panController;
             mMacAddress = macAddress;
-            mIpAddress = ipAddress;
+            
         }
 
         /// <summary>
@@ -110,25 +109,13 @@ namespace LifxLib
         }
 
 
-        /// <summary>
-        /// Uninitialized bulb, for detection for instance
-        /// </summary>
-        public LifxBulb()
-        { 
-            
-        }
-
-
-        public static LifxBulb UninitializedBulb
-        {
-            get { return new LifxBulb();}
-        }
+        #region ILifxNode Members
 
         public string PanHandler
         {
-            get { return mPanHandler; }
-            set { mPanHandler = value; }
+            get { return mPanController.MacAddress; }
         }
+
         public string MacAddress
         {
             get { return mMacAddress; }
@@ -137,8 +124,16 @@ namespace LifxLib
 
         public IPEndPoint IpEndpoint
         {
-            get { return mIpAddress; }
-            set { mIpAddress = value; }
+            get
+            {
+                return mPanController.IpEndpoint;
+            }
+            set
+            {
+                mPanController.IpEndpoint = value;
+            }
         }
+
+        #endregion
     }
 }

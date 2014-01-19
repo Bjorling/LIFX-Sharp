@@ -5,11 +5,11 @@ using System.Text;
 
 namespace LifxLib.Messages
 {
-    public class LifxPANGatewayState : LifxReceivedMessage
+    public class LifxPANGatewayStateMessage : LifxReceivedMessage
     {
-        private const UInt16 PACKET_TYPE = 0x03;
+        public const UInt16 PACKET_TYPE = 0x03;
 
-        public LifxPANGatewayState()
+        public LifxPANGatewayStateMessage()
             : base(PACKET_TYPE)
         {
 

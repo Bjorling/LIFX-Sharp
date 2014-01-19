@@ -17,7 +17,7 @@ namespace LifxLib.Messages
         private DateTime mTimestamp = DateTime.MinValue;
         private Boolean mIsBroadcastCommand = false;
         private UInt16 mRetryCount = 3;
-
+        private Boolean mIsDiscoveryCommand = false;
         
         
 
@@ -71,5 +71,12 @@ namespace LifxLib.Messages
             get { return mRetryCount; }
             set { mRetryCount = value; }
         }
+
+        public Boolean IsDiscoveryCommand
+        {
+            get { return mIsDiscoveryCommand; }
+            set { mIsDiscoveryCommand = value; }
+        }
+
     }
 }

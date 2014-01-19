@@ -7,7 +7,7 @@ namespace LifxLib.Messages
 {
     public class LifxLightStatusMessage : LifxReceivedMessage
     {
-        private const UInt16 PACKET_TYPE = 0x6B;
+        public const UInt16 PACKET_TYPE = 0x6B;
 
         public LifxLightStatusMessage()
             : base(PACKET_TYPE)
