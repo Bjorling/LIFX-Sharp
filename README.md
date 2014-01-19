@@ -4,7 +4,7 @@ LIFX-Sharp
 .NET API for the controlling LIFX bulbs
 
 
-LifxLib is a library containing classes representing Bulbs, Communication and Messages sent from and to a physical LIFX bulb. The communication is done solely via UDP. 
+LifxLib is a library containing classes representing Bulbs, PAN controllers, Communication and Messages sent from and to a physical LIFX bulb. The communication is done solely via UDP. 
 
 Since the API is not available yet, I have relied on magicmonkeys terrific LIFX project (https://github.com/magicmonkey/lifxjs) which has a great documentation from observations made of network traffic.
 
