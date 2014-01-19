@@ -10,7 +10,7 @@ Since the API is not available yet, I have relied on magicmonkeys terrific LIFX 
 
 
 Included is a test application showing how to use the lib to:
-* Discover bulbs
+* Discover PAN controllers/bulbs
 * Get/Set Power state
 * Get/Set Label
 * Get/Set Color parameters
@@ -23,8 +23,8 @@ Discovery of bulb:
 ```
   LifxCommunicator.Instance.Initialize();
 
-  List<LifxBulb> bulbs = LifxCommunicator.Instance.DiscoverBulbs();
-  LifxBulb mBulb = bulbs[0];
+  List<LifxPanController> panController = LifxCommunicator.Instance.Discover();
+  LifxBulb mBulb = panController[0].bulbs[0];
 ```
 
 Get power state:
